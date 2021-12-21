@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="skeleton.css">
+  <link rel="stylesheet" href="normalize.css">
+  <title>Document</title>
+  <style>
+    input[type="text"] {
+      width: 100%;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Название ветки для тикетов ODIN</h1>
+    <form class="generate-form">
+      <label for="task-number">Номер тикета</label>
+      <input id="task-number" type="text">
+      <label for="task-name">Название тикета</label>
+      <input type="text" id="task-name">
+      <label for="branch-name">Название ветки</label>
+      <input type="text" id="branch-name" value="ODIN" />
+    </form>
+    <button id="copy">
+      Скопировать
+    </button>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const taskNumberInput = document.getElementById("task-number");
+      const taskNameInput = document.getElementById("task-name");
+      const valueOutput = document.getElementById("branch-name");
+      const btn = document.getElementById("copy");
+      const onChange = () => {
+        const number = 'ODIN-' + taskNumberInput.value.replace(/\D/g, '');
+        const name = taskNameInput.value.replace(/\s/g, '-').replace(/["\[\]]/g, '').toLowerCase();
+        valueOutput.value = number + '-' + name;
+        btn.classList.remove('button-primary');
+        btn.textContent = 'Скопировать'
+      }
+      taskNumberInput.addEventListener('input', onChange);
+      taskNameInput.addEventListener('input', onChange);
+
+      btn.addEventListener('click', () => {
+        valueOutput.select();
+        valueOutput.setSelectionRange(0, 99999); /* For mobile devices */
+        navigator.clipboard.writeText(valueOutput.value);
+        btn.textContent = 'Скопировано';
+        btn.classList = 'button-primary';
+      })
+    })
+  </script>
+</body>
+</html>
