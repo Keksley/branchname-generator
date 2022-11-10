@@ -10,7 +10,7 @@
   <style>
     input[type="text"] {
       width: 100%;
-      max-width: 400px;
+      max-width: 542px;
     }
   </style>
 </head>
@@ -28,6 +28,12 @@
     <button id="copy">
       Скопировать
     </button>
+    <button id="copy-git">
+      Скопировать с git-командами
+    </button>
+    <button id="refresh">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="16" width="16"><path d="M24 40q-6.65 0-11.325-4.675Q8 30.65 8 24q0-6.65 4.675-11.325Q17.35 8 24 8q4.25 0 7.45 1.725T37 14.45V8h3v12.7H27.3v-3h8.4q-1.9-3-4.85-4.85Q27.9 11 24 11q-5.45 0-9.225 3.775Q11 18.55 11 24q0 5.45 3.775 9.225Q18.55 37 24 37q4.15 0 7.6-2.375 3.45-2.375 4.8-6.275h3.1q-1.45 5.25-5.75 8.45Q29.45 40 24 40Z"/></svg>
+    </button>
   </div>
   <script>
     function getBranch(el) {
@@ -39,11 +45,18 @@
       const taskNameInput = document.getElementById("task-name");
       const valueOutput = document.getElementById("branch-name");
       const btn = document.getElementById("copy");
+      const btnGit = document.getElementById("copy-git");
+      const refresh = document.getElementById("refresh");
+      const onRefresh = () => {
+        btn.classList.remove('button-primary');
+        btnGit.classList.remove('button-primary');
+        btn.textContent = 'Скопировать'
+        btnGit.textContent = 'Скопировать с git-командами'
+        navigator.clipboard.writeText('');
+      }
       const onChange = () => {
         valueOutput.value = getBranch(taskNameInput.value);
-        console.log(valueOutput.value, taskNameInput.value)
-        btn.classList.remove('button-primary');
-        btn.textContent = 'Скопировать'
+        onRefresh();
       }
       taskNameInput.addEventListener('input', onChange);
 
@@ -54,6 +67,12 @@
         btn.textContent = 'Скопировано';
         btn.classList = 'button-primary';
       })
+      btnGit.addEventListener('click', () => {
+        navigator.clipboard.writeText('git checkout master && git pull && git checkout -b ' + valueOutput.value);
+        btnGit.textContent = 'Скопировано';
+        btnGit.classList = 'button-primary';
+      })
+      refresh.addEventListener('click', onRefresh)
     })
   </script>
 </body>
