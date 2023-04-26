@@ -12,6 +12,22 @@
       width: 100%;
       max-width: 542px;
     }
+    .mt-1 {
+      margin-top: 16px;
+    }
+    .mb-1 {
+      margin-bottom: 16px;
+    }
+    .mr-1 {
+      margin-right: 8px;
+    }
+    .m-0 {
+      margin: 0;
+    }
+    .field {
+      display: flex;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
@@ -22,8 +38,19 @@
     <form class="generate-form">
       <label for="task-name">Название тикета из Tracker <img style="margin-bottom: -5px;" width="20" height="20" src="https://www.ph4.ru/DL/LOGO/y/ya_tracker_.gif" alt=""></label>
       <input type="text" id="task-name">
+      <div class="mt-1 mb-1">
+        <button type="button" id="copy-name">
+          Скопировать название тикета
+        </button>
+      </div>
       <label for="branch-name">Название ветки</label>
       <input type="text" id="branch-name" value="ODIN" />
+      <div class="field mt-1">
+        <input checked class="mr-1" type="radio" name="sep" value="-" id="dash"><label class="m-0" for="dash">Разделять слова с помощью -</label>
+      </div>
+      <div class="field mt-1">
+        <input class="mr-1" type="radio" name="sep" value="_" id="underscore"><label class="m-0" for="underscore">Разделять слова с помощью _</label>
+      </div>
     </form>
     <button id="copy">
       Скопировать
@@ -36,20 +63,36 @@
     </button>
   </div>
   <script>
+    let sep = '-';
     function getBranch(el) {
       // ODIN-8856: В шаблоне дисциплины не работает кнопка "открепить" для шаблона активности
-      const cleared = el.replace(/[^A-Za-zА-Яа-я0-9]/g, ' ');
-      return cleared.replace(/ +/g, '-')
+      const ticketNumberRegExp = /[A-Z]+-[0-9]+/;
+      const ticketNumber = el.match(ticketNumberRegExp)[0];
+      const ticketName = el.replace(ticketNumberRegExp, '');
+      const cleared = ticketName.replace(/[^A-Za-zА-Яа-я0-9]/g, ' ');
+      if (cleared.slice(-1) === ' ') {
+        return ticketNumber + cleared.slice(0, -1).replace(/ +/g, sep);
+      }
+      return ticketNumber + cleared.replace(/ +/g, sep)
     }
     document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('#dash,#underscore').forEach((el) => {
+        el.addEventListener('input', () => {
+          sep = el.value;
+          onChange();
+        });
+      });
       const taskNameInput = document.getElementById("task-name");
       const valueOutput = document.getElementById("branch-name");
       const btn = document.getElementById("copy");
       const btnGit = document.getElementById("copy-git");
+      const btnName = document.getElementById("copy-name");
       const refresh = document.getElementById("refresh");
       const onRefresh = () => {
         btn.classList.remove('button-primary');
         btnGit.classList.remove('button-primary');
+        btnName.classList.remove('button-primary');
+        btnName.textContent = 'Скопировать название тикета';
         btn.textContent = 'Скопировать'
         btnGit.textContent = 'Скопировать с git-командами'
         navigator.clipboard.writeText('');
@@ -58,12 +101,19 @@
         valueOutput.value = getBranch(taskNameInput.value);
         onRefresh();
       }
+      const copyInputValue = (input) => {
+        input.select();
+        input.setSelectionRange(0, 99999); /* For mobile devices */
+        navigator.clipboard.writeText(input.value);
+      }
       taskNameInput.addEventListener('input', onChange);
-
+      btnName.addEventListener('click', () => {
+        copyInputValue(taskNameInput);
+        btnName.textContent = 'Название тикета скопировано';
+        btnName.classList = 'button-primary';
+      })
       btn.addEventListener('click', () => {
-        valueOutput.select();
-        valueOutput.setSelectionRange(0, 99999); /* For mobile devices */
-        navigator.clipboard.writeText(valueOutput.value);
+        copyInputValue(valueOutput);
         btn.textContent = 'Скопировано';
         btn.classList = 'button-primary';
       })
