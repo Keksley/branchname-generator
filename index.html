@@ -45,6 +45,12 @@
       </div>
       <label for="branch-name">Название ветки</label>
       <input type="text" id="branch-name" value="ODIN" />
+      <label for="destination">Целевая ветка</label>
+      <input type="text" id="destination" value="staging">
+      <div>
+        <small>staging</small>
+        <small>master</small>
+      </div>
       <div class="field mt-1">
         <input checked class="mr-1" type="radio" name="sep" value="-" id="dash"><label class="m-0" for="dash">Разделять слова с помощью -</label>
       </div>
@@ -61,11 +67,11 @@
     <button id="refresh">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="16" width="16"><path d="M24 40q-6.65 0-11.325-4.675Q8 30.65 8 24q0-6.65 4.675-11.325Q17.35 8 24 8q4.25 0 7.45 1.725T37 14.45V8h3v12.7H27.3v-3h8.4q-1.9-3-4.85-4.85Q27.9 11 24 11q-5.45 0-9.225 3.775Q11 18.55 11 24q0 5.45 3.775 9.225Q18.55 37 24 37q4.15 0 7.6-2.375 3.45-2.375 4.8-6.275h3.1q-1.45 5.25-5.75 8.45Q29.45 40 24 40Z"/></svg>
     </button>
+    <div><span id="result"></span></div>
   </div>
   <script>
     let sep = '-';
     function getBranch(el) {
-      // ODIN-8856: В шаблоне дисциплины не работает кнопка "открепить" для шаблона активности
       const ticketNumberRegExp = /[A-Z]+-[0-9]+/;
       const ticketNumber = el.match(ticketNumberRegExp)[0];
       const ticketName = el.replace(ticketNumberRegExp, '');
@@ -120,9 +126,12 @@
         btn.classList = 'button-primary';
       })
       btnGit.addEventListener('click', () => {
-        navigator.clipboard.writeText('git checkout master && git pull && git checkout -b ' + valueOutput.value);
+        const destination = document.querySelector('#destination').value
+        const toCopy = `git checkout ${destination ? destination : 'master'} && git pull && git checkout -b  ${valueOutput.value}`
+        navigator.clipboard.writeText(toCopy);
         btnGit.textContent = 'Скопировано';
         btnGit.classList = 'button-primary';
+        document.querySelector('#result').textContent = `Скопировано: ${toCopy}`
       })
       refresh.addEventListener('click', onRefresh)
     })
