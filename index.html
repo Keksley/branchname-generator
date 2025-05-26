@@ -101,7 +101,7 @@
         btnName.textContent = 'Скопировать название тикета';
         btn.textContent = 'Скопировать'
         btnGit.textContent = 'Скопировать с git-командами'
-        navigator.clipboard.writeText('');
+        document.querySelector('#result').textContent = ''
       }
       const onChange = () => {
         valueOutput.value = getBranch(taskNameInput.value);
