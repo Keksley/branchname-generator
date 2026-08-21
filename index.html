@@ -46,10 +46,10 @@
       <label for="branch-name">Название ветки</label>
       <input type="text" id="branch-name" value="ODIN" />
       <label for="destination">Целевая ветка</label>
-      <input type="text" id="destination" value="staging">
+      <input type="text" id="destination" value="master">
       <div>
-        <small>staging</small>
-        <small>master</small>
+        <small onClick="() => document.querySelector('#destination').value = 'staging'">staging</small>
+        <small onClick="() => document.querySelector('#destination').value = 'master'">master</small>
       </div>
       <div class="field mt-1">
         <input checked class="mr-1" type="radio" name="sep" value="-" id="dash"><label class="m-0" for="dash">Разделять слова с помощью -</label>
