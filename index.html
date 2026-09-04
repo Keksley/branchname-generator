@@ -38,6 +38,9 @@
     <form class="generate-form">
       <label for="task-name">Ключ и название задачи <img style="margin-bottom: 0px;" width="48" height="11" src="https://www.ph4.ru/DL/LOGO/y/ya_tracker_.gif" alt=""></label>
       <input type="text" id="task-name">
+      <div class="mt-1 mb-1" id="ticket-link-wrapper" style="display: none;">
+        <a id="ticket-link" href="#" target="_blank" rel="noopener noreferrer">Открыть тикет в трекере</a>
+      </div>
       <div class="mt-1 mb-1">
         <button type="button" id="copy-name">
           Скопировать название тикета
@@ -45,17 +48,18 @@
       </div>
       <label for="branch-name">Название ветки</label>
       <input type="text" id="branch-name" value="ODIN" />
-      <label for="destination">Целевая ветка</label>
-      <input type="text" id="destination" value="master">
-      <div>
-        <small onClick="() => document.querySelector('#destination').value = 'staging'">staging</small>
-        <small onClick="() => document.querySelector('#destination').value = 'master'">master</small>
+      <label>Целевая ветка</label>
+      <div class="field mt-1">
+        <input class="mr-1" type="radio" name="destination" value="staging" id="dest-staging"><label class="m-0" for="dest-staging">staging</label>
       </div>
       <div class="field mt-1">
-        <input checked class="mr-1" type="radio" name="sep" value="-" id="dash"><label class="m-0" for="dash">Разделять слова с помощью -</label>
+        <input checked class="mr-1" type="radio" name="destination" value="master" id="dest-master"><label class="m-0" for="dest-master">master</label>
       </div>
       <div class="field mt-1">
-        <input class="mr-1" type="radio" name="sep" value="_" id="underscore"><label class="m-0" for="underscore">Разделять слова с помощью _</label>
+        <input class="mr-1" type="radio" name="sep" value="-" id="dash"><label class="m-0" for="dash">Разделять слова с помощью -</label>
+      </div>
+      <div class="field mt-1">
+        <input checked class="mr-1" type="radio" name="sep" value="_" id="underscore"><label class="m-0" for="underscore">Разделять слова с помощью _</label>
       </div>
     </form>
     <button id="copy">
@@ -70,12 +74,16 @@
     <div><span id="result"></span></div>
   </div>
   <script>
-    let sep = '-';
+    let sep = '_';
+    const ticketNumberRegExp = /[A-Z]+-[0-9]+/;
+    function getTicketNumber(el) {
+      const match = el.match(ticketNumberRegExp);
+      return match ? match[0] : '';
+    }
     function getBranch(el) {
-      const ticketNumberRegExp = /[A-Z]+-[0-9]+/;
-      const ticketNumber = el.match(ticketNumberRegExp)[0];
+      const ticketNumber = getTicketNumber(el);
       const ticketName = el.replace(ticketNumberRegExp, '');
-      const cleared = ticketName.replace(/[^A-Za-zА-Яа-я0-9]/g, ' ');
+      const cleared = ticketName.replace(/[^A-Za-zА-Яа-яЁё0-9]/g, ' ');
       if (cleared.slice(-1) === ' ') {
         return ticketNumber + cleared.slice(0, -1).replace(/ +/g, sep);
       }
@@ -94,17 +102,40 @@
       const btnGit = document.getElementById("copy-git");
       const btnName = document.getElementById("copy-name");
       const refresh = document.getElementById("refresh");
+      const ticketLinkWrapper = document.getElementById("ticket-link-wrapper");
+      const ticketLink = document.getElementById("ticket-link");
+      const BTN_TEXT = 'Скопировать';
+      const BTN_GIT_TEXT = 'Скопировать с git-командами';
+      const BTN_NAME_TEXT = 'Скопировать название тикета';
       const onRefresh = () => {
         btn.classList.remove('button-primary');
         btnGit.classList.remove('button-primary');
         btnName.classList.remove('button-primary');
-        btnName.textContent = 'Скопировать название тикета';
-        btn.textContent = 'Скопировать'
-        btnGit.textContent = 'Скопировать с git-командами'
+        btnName.textContent = BTN_NAME_TEXT;
+        btn.textContent = BTN_TEXT
+        btnGit.textContent = BTN_GIT_TEXT
         document.querySelector('#result').textContent = ''
+      }
+      const flashCopied = (button, originalText, copiedText) => {
+        button.textContent = copiedText;
+        button.classList.add('button-primary');
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.classList.remove('button-primary');
+        }, 1000);
+      }
+      const updateTicketLink = () => {
+        const ticketNumber = getTicketNumber(taskNameInput.value);
+        if (ticketNumber) {
+          ticketLink.href = `https://tracker.yandex.ru/${ticketNumber}`;
+          ticketLinkWrapper.style.display = '';
+        } else {
+          ticketLinkWrapper.style.display = 'none';
+        }
       }
       const onChange = () => {
         valueOutput.value = getBranch(taskNameInput.value);
+        updateTicketLink();
         onRefresh();
       }
       const copyInputValue = (input) => {
@@ -113,24 +144,21 @@
         navigator.clipboard.writeText(input.value);
       }
       taskNameInput.addEventListener('input', onChange);
+      taskNameInput.addEventListener('click', () => taskNameInput.select());
       btnName.addEventListener('click', () => {
         copyInputValue(taskNameInput);
-        btnName.textContent = 'Название тикета скопировано';
-        btnName.classList = 'button-primary';
-
-        setTimeout(onRefresh, 3000);
+        flashCopied(btnName, BTN_NAME_TEXT, 'Название тикета скопировано');
       })
       btn.addEventListener('click', () => {
         copyInputValue(valueOutput);
-        btn.textContent = 'Скопировано';
-        btn.classList = 'button-primary';
+        flashCopied(btn, BTN_TEXT, 'Скопировано');
       })
       btnGit.addEventListener('click', () => {
-        const destination = document.querySelector('#destination').value
-        const toCopy = `git checkout ${destination ? destination : 'master'} && git pull && git checkout -b  ${valueOutput.value}`
+        const destinationInput = document.querySelector('input[name="destination"]:checked');
+        const destination = destinationInput ? destinationInput.value : 'master';
+        const toCopy = `git checkout ${destination} && git pull && git checkout -b  ${valueOutput.value}`
         navigator.clipboard.writeText(toCopy);
-        btnGit.textContent = 'Скопировано';
-        btnGit.classList = 'button-primary';
+        flashCopied(btnGit, BTN_GIT_TEXT, 'Скопировано');
         document.querySelector('#result').textContent = `Скопировано: ${toCopy}`
       })
       refresh.addEventListener('click', onRefresh)
